@@ -1,0 +1,70 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: laravel_db
+    # restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: user
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3300:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - laravel
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: test_laravel_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8080:80"
+    networks:
+      - laravel
+
+  app:
+    build:
+      context: . # Points to the directory with your Dockerfile
+      dockerfile: Dockerfile
+    container_name: laravel_apache
+    restart: unless-stopped
+    working_dir: /var/www/html
+    ports:
+      - "6000:6001"  # Expose WebSocket port
+    volumes:
+      - .:/var/www/html
+    networks:
+      - laravel
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: laravel
+      DB_USERNAME: user
+      DB_PASSWORD: password
+    depends_on:
+      - mysql
+    command: /bin/sh -c "chmod -R 777 /var/www/html/storage && php artisan websockets:serve & php-fpm"
+
+  webserver:
+    image: nginx:alpine
+    container_name: laravel_nginx
+    restart: unless-stopped
+    ports:
+      - "9000:80"
+    volumes:
+      - .:/var/www/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - laravel
+
+networks:
+  laravel:
+
+volumes:
+  dbdata:
