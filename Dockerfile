@@ -1,8 +1,12 @@
 # Use the official PHP image with FPM
-FROM php:8.5
+FROM php:8.4-fpm
 
 # Set the working directory in the container
 WORKDIR /var/www/html
+
+# Set environment variables
+ENV APP_ENV=production \
+    APP_DEBUG=false
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -17,13 +21,13 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install gd pdo pdo_mysql
 
 # Install Composer
-COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
 # Copy the Laravel project into the container
 COPY . .
 
 # Install Laravel dependencies
-# RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader
 
 # Set file permissions for the Laravel project
 RUN chown -R www-data:www-data /var/www/html \
