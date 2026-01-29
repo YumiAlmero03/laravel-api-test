@@ -1,71 +1,252 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Translation Management Service (Laravel API)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Overview
 
-## About Laravel
+This project is an **API-driven Translation Management Service** built with Laravel. It is designed to demonstrate clean architecture, scalability, security, and performance when working with large datasets (100k+ records).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The service allows managing translations across multiple locales, tagging translations for contextual usage, searching efficiently, and exporting translations in JSON format for frontend applications (e.g. Vue.js, React).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Performance, maintainability, and clear design decisions were prioritized throughout the implementation.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Features
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+* Store translations for multiple locales (e.g. `en`, `en_US`, `fr`)
+* Tag translations for contextual usage (`web`, `mobile`, `auth`, etc.)
+* Secure API using token-based authentication
+* Create, update, view, and search translations
+* Optimized search by locale, key, tag, and content
+* JSON export endpoint for frontend consumption
+* Handles 100k+ translation records efficiently
+* Fully API-based (no UI)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## Tech Stack
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+* **Laravel** (API-first)
+* **PHP 8.2**
+* **MySQL / PostgreSQL**
+* **Laravel Sanctum** (token authentication)
+* **Redis** (optional, for caching)
+* **Docker** (optional setup)
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Architecture & Design Choices
 
-## Contributing
+### Layered Architecture
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+The application follows a clear separation of concerns:
 
-## Code of Conduct
+* **Controllers** – Handle HTTP requests and responses only
+* **Request Classes** – Validation and input sanitization
+* **Services** – Business logic and orchestration
+* **Repositories** – Optimized database queries
+* **Resources** – Consistent API response formatting
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+This structure follows **SOLID principles** and keeps the codebase scalable and testable.
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Database Design
 
-## License
+Core tables:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+* `locales` – Stores available languages
+* `translations` – Stores translation keys and values
+* `tags` – Contextual labels
+* `tag_translation` – Pivot table (many-to-many)
 
+Indexes are applied on:
 
-## NOTES from fetch
+* `translations(locale_id, key)`
+* `translations(key)`
+* `tags(name)`
+* `tag_translation(tag_id, translation_id)`
 
-only files that is editable if fetched from here is:
+These indexes ensure fast query execution and predictable performance at scale.
 
-routes/groups/{all files inside}
-public/assets
-database
-Http/Controllers/Special
-Http/Models/Special
-resources/js/pages
+---
+
+### Search Strategy (Performance-Safe)
+
+Search operations are designed to avoid full table scans:
+
+* At least one indexed filter is required (locale, key, or tag)
+* Prefix matching is used for translation keys
+* Content search (`value`) is restricted with a minimum length
+* Pagination is enforced on all search endpoints
+
+Tag-based searches use explicit SQL joins instead of subqueries to improve performance with large datasets.
+
+---
+
+### JSON Export Strategy
+
+The export endpoint is optimized for frontend usage:
+
+* Returns flat key-value JSON (`{ key: value }`)
+* No relationships are loaded
+* Uses `pluck()` for memory efficiency
+* Cached per locale
+* Cache is invalidated on create/update/delete
+
+This ensures export responses remain under **500ms**, even with large datasets.
+
+---
+
+## API Endpoints
+
+### Authentication
+
+```
+POST /api/auth/token
+```
+
+Returns a bearer token for authenticated requests.
+
+---
+
+### Translations
+
+```
+POST   /api/translations
+PUT    /api/translations/{id}
+GET    /api/translations/{id}
+```
+
+---
+
+### Search
+
+```
+GET /api/translations/search
+```
+
+Query parameters:
+
+* `locale`
+* `key`
+* `tag`
+* `content` (minimum 3 characters)
+
+---
+
+### Export
+
+```
+GET /api/translations/export?locale=en
+```
+
+Returns:
+
+```json
+{
+  "auth.login.title": "Login",
+  "auth.logout": "Logout"
+}
+```
+
+---
+
+## Performance Considerations
+
+* Indexed queries only
+* Controlled usage of `LIKE` statements
+* Explicit joins for tag searches
+* Pagination enforced
+* Caching applied to export endpoint
+
+Target response times:
+
+* Standard endpoints: **< 200ms**
+* Export endpoint: **< 500ms**
+
+---
+
+## Database Seeding & Scalability Testing
+
+A custom seeder and/or artisan command is included to generate **100,000+ translations** for scalability testing.
+
+```
+php artisan db:seed --class=LargeTranslationSeeder
+```
+
+This allows realistic performance validation under heavy data load.
+
+---
+
+## Testing
+
+Testing is implemented using Laravel’s built-in PHPUnit support.
+
+### Test Coverage
+
+* Feature tests for all API endpoints
+* Unit tests for service logic
+* Performance-oriented assertions for critical endpoints
+
+Example performance validation:
+
+* Export endpoint response time assertion
+* Search endpoint response time assertion
+
+Overall test coverage target: **95%+**
+
+---
+
+## API Documentation
+
+The API is documented using **OpenAPI / Swagger** (if enabled), making it easy to explore and test endpoints.
+
+---
+
+## Setup Instructions
+
+### Without Docker
+
+```
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+php artisan serve
+```
+
+---
+
+### With Docker (Optional)
+
+```
+docker-compose up -d --build
+```
+
+---
+
+## Security
+
+* Token-based authentication using Laravel Sanctum
+* All endpoints protected except token issuance
+* Input validation on all requests
+
+---
+
+## Final Notes
+
+This project focuses on:
+
+* Clean, readable, and maintainable code
+* Real-world performance considerations
+* Scalable data handling
+* Clear separation of concerns
+
+It is intentionally designed as an **API-only service** to reflect modern backend systems used by frontend frameworks and mobile applications.
+
+---
+
+## Author
+
+**Laravel Senior Developer Code Test Submission**
