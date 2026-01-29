@@ -1,5 +1,5 @@
 # Use the official PHP image with FPM
-FROM php:8.2-fpm
+FROM php:8.4-fpm
 
 # Set the working directory in the container
 WORKDIR /var/www/html
@@ -27,7 +27,7 @@ COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 COPY . .
 
 # Install Laravel dependencies
-# RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader
 
 # Set file permissions for the Laravel project
 RUN chown -R www-data:www-data /var/www/html \
