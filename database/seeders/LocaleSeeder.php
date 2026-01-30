@@ -15,7 +15,7 @@ class LocaleSeeder extends Seeder
     {
         DB::table('locales')->insert([
             ['code' => 'en', 'name' => 'English'],
-            ['code' => 'fr', 'name' => 'French'],
+            ['code' => 'tg', 'name' => 'Tagalog'],
             ['code' => 'de', 'name' => 'German'],
             ['code' => 'es', 'name' => 'Spanish'],
         ]);

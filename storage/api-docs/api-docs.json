@@ -103,6 +103,270 @@
                 ]
             }
         },
+        "/locales": {
+            "get": {
+                "tags": [
+                    "Locales"
+                ],
+                "summary": "List all locales",
+                "operationId": "df592e26b9313c3fe97cb0d4959d7874",
+                "responses": {
+                    "200": {
+                        "description": "List of locales",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "code": {
+                                                "type": "string",
+                                                "example": "en"
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "English"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Locales"
+                ],
+                "summary": "Create a new locale",
+                "operationId": "037035d6b62df2433f8c55a9144ed437",
+                "requestBody": {
+                    "description": "Locale data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "code",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "fr"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "French"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Locale created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "code": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/locales/{id}": {
+            "get": {
+                "tags": [
+                    "Locales"
+                ],
+                "summary": "Get locale by ID",
+                "operationId": "e299c8dc88590cad450cf04f0a71abc1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Locale ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Locale details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "code": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Locale not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Locales"
+                ],
+                "summary": "Update a locale",
+                "operationId": "8ad7ad666ac77c0239cf3af17c0a0a29",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Locale ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Locale data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "code",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "fr"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "French"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Locale updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "code": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Locale not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Locales"
+                ],
+                "summary": "Delete a locale",
+                "operationId": "4881d146a35ec1894e10bbf295056498",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Locale ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Locale deleted successfully"
+                    },
+                    "404": {
+                        "description": "Locale not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/tags": {
             "get": {
                 "tags": [
@@ -118,6 +382,16 @@
                         "required": false,
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "count",
+                        "in": "query",
+                        "description": "Number of items per page for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 50
                         }
                     }
                 ],
@@ -337,7 +611,7 @@
                     }
                 ],
                 "responses": {
-                    "204": {
+                    "200": {
                         "description": "Tag deleted successfully"
                     },
                     "404": {
@@ -350,9 +624,409 @@
                     }
                 ]
             }
+        },
+        "/translations": {
+            "get": {
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "List translations with filters",
+                "operationId": "dafa208e862d8826463c5fe3a11818f6",
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "query",
+                        "description": "Filter by translation key prefix",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Filter by locale code (e.g. en, fr)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "tag",
+                        "in": "query",
+                        "description": "Filter by tag name",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "count",
+                        "in": "query",
+                        "description": "Number of items per page for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 50
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of translations",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Translation"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Create a translation",
+                "operationId": "90ebb767d4793fa9dfe6e9462808e8a7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "locale_id",
+                                    "key",
+                                    "value"
+                                ],
+                                "properties": {
+                                    "locale_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "key": {
+                                        "type": "string",
+                                        "example": "welcome.title"
+                                    },
+                                    "value": {
+                                        "type": "string",
+                                        "example": "Welcome"
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": "[1,2]"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Translation created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Translation"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/translations/{id}": {
+            "get": {
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Get a translation",
+                "operationId": "c7be0aa618ad30e4ae3a879bec36e445",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Translation details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Translation"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Translation not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Update a translation",
+                "operationId": "6cb654dcf9b4966f97fdb3ef5756a6d7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "locale_id",
+                                    "key",
+                                    "value"
+                                ],
+                                "properties": {
+                                    "locale_id": {
+                                        "type": "integer"
+                                    },
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Translation updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Translation"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Delete a translation",
+                "operationId": "40d5d227e7370f8b241c42fe004980d7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Translation deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/translations/export": {
+            "get": {
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Export translations for frontend",
+                "operationId": "a6bbb56eddaffbc55069df4a7818e1f4",
+                "responses": {
+                    "200": {
+                        "description": "Translations grouped by locale",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
+        "schemas": {
+            "Locale": {
+                "required": [
+                    "id",
+                    "code"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "en"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "English"
+                    }
+                },
+                "type": "object"
+            },
+            "Tag": {
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "mobile"
+                    }
+                },
+                "type": "object"
+            },
+            "Translation": {
+                "required": [
+                    "id",
+                    "key",
+                    "value",
+                    "locale"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "key": {
+                        "type": "string",
+                        "example": "welcome.title"
+                    },
+                    "value": {
+                        "type": "string",
+                        "example": "Welcome"
+                    },
+                    "locale": {
+                        "$ref": "#/components/schemas/Locale"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Tag"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationError": {
+                "required": [
+                    "message",
+                    "errors"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "The given data was invalid."
+                    },
+                    "errors": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "schema": "Schemas",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "example": "This field is required."
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "Schemas": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "example": "This field is required."
+                }
+            }
+        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
@@ -367,8 +1041,16 @@
             "description": "Authentication"
         },
         {
+            "name": "Locales",
+            "description": "Locales"
+        },
+        {
             "name": "Tags",
             "description": "Tags"
+        },
+        {
+            "name": "Translations",
+            "description": "Translations"
         }
     ]
 }

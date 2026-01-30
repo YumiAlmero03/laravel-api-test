@@ -20,84 +20,70 @@ class TranslationApiTest extends TestCase
         Sanctum::actingAs(User::factory()->create());
     }
 
+    public function test_can_list_translations()
+    {
+        $this->seed();
+
+        $this->getJson('/api/translations')
+            ->assertOk()
+            ->assertJsonStructure(['data']);
+    }
     public function test_can_create_translation()
     {
-        $locale = Locale::factory()->create();
-        $tag = Tag::factory()->create();
+        $locale = Locale::firstOrCreate(['code' => 'en', 'name' => 'English']);
+        $tag = Tag::firstOrCreate(['name' => 'greeting']);
+
+        $response = $this->postJson('/api/translations', [
+            'locale_id' => $locale->id,
+            'key' => 'welcome.message',
+            'value' => 'Welcome to our application!',
+            'tags' => [$tag->id],
+        ]);
+        $response->assertStatus(201)
+                 ->assertJsonFragment(['key' => 'welcome.message', 'value' => 'Welcome to our application!']);
+        $this->assertDatabaseHas('translations', ['key' => 'welcome.message', 'value' => 'Welcome to our application!']);
+    }
+    public function test_translation_key_value_must_be_unique_per_locale()
+    {
+        $locale = Locale::firstOrCreate(['code' => 'en', 'name' => 'English']);
+        Translation::create([
+            'locale_id' => $locale->id,
+            'key' => 'duplicate.key',
+            'value' => 'Duplicate Value',
+        ]);
 
         $this->postJson('/api/translations', [
             'locale_id' => $locale->id,
-            'key' => 'home.title',
-            'value' => 'Welcome',
-            'tags' => [$tag->id],
-        ])->assertStatus(201);
+            'key' => 'duplicate.key',
+            'value' => 'Duplicate Value',
+        ])->assertStatus(422);
     }
-
-    public function test_can_search_translation_by_tag()
+    public function test_can_update_translation()
     {
-        Translation::factory()->count(5)->create();
-
-        $this->getJson('/api/translations?key=app')
-            ->assertStatus(200)
-            ->assertJsonStructure(['data']);
+        $locale = Locale::firstOrCreate(['code' => 'tg', 'name' => 'Tagalog']);
+        $translation = Translation::firstOrCreate([
+            'locale_id' => $locale->id,
+            'key' => 'update.this',
+            'value' => 'the Old Value',
+        ]); 
+        $this->putJson("/api/translations/{$translation->id}", [
+            'locale_id' => $locale->id,
+            'key' => 'update.this',
+            'value' => 'Updated Value',
+        ])
+        ->assertStatus(200);
+        $this->assertDatabaseHas('translations', ['id' => $translation->id, 'value' => 'Updated Value']);
     }
-
-    public function translation_seeder_populates_database(): void
+    public function test_can_delete_translation()
     {
-        $this->seed();
-
-        $this->assertGreaterThan(
-            100_000,
-            Translation::count(),
-            'Expected seeded translations to exceed 100k rows'
-        );
-    }
-
-    public function it_exports_translations_as_json(): void
-    {
-        $this->seed();
-
-        $locale = Locale::first();
-
-        $response = $this->getJson("/api/translations/export?locale={$locale->code}");
-
-        $response
-            ->assertOk()
-            ->assertJsonStructure([
-                '*' => [],
-            ]);
-
-        $this->assertNotEmpty($response->json());
-    }
-
-    public function export_endpoint_handles_large_dataset(): void
-    {
-        $this->seed();
-
-        $locale = Locale::first();
-
-        $start = microtime(true);
-
-        $this->getJson("/api/translations/export?locale={$locale->code}")
-            ->assertOk();
-
-        $duration = microtime(true) - $start;
-
-        $this->assertLessThan(
-            0.5,
-            $duration,
-            "Export endpoint exceeded expected performance threshold"
-        );
-    }
-
-    public function it_can_search_by_value(): void
-    {
-        $this->seed();
-
-        $response = $this->getJson('/api/translations/search?query=account');
-
-        $response
-            ->assertOk()
-            ->assertJsonCount(10); // paginated
+        $locale = Locale::firstOrCreate(['code' => 'en', 'name' => 'English']);
+        $translation = Translation::firstOrCreate([
+            'locale_id' => $locale->id,
+            'key' => 'delete.me',
+            'value' => 'To be deleted',
+        ]);
+        $this->deleteJson("/api/translations/{$translation->id}")
+             ->assertStatus(204);
+        $this->assertDatabaseMissing('translations', ['id' => $translation->id]);
     }
 }

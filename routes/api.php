@@ -14,16 +14,16 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/login', [AuthController::class, 'issueToken']);
+Route::post('/logout', [AuthController::class, 'logout']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
     Route::group(['prefix' => 'translations'], function () {
+        Route::get('/', [TranslationController::class, 'index']);
         Route::post('/', [TranslationController::class, 'store']);
-        Route::put('/{translation}', [TranslationController::class, 'update']);
         Route::get('/{translation}', [TranslationController::class, 'show']);
+        Route::put('/{translation}', [TranslationController::class, 'update']);
+        Route::delete('/{translation}', [TranslationController::class, 'destroy']);
 
-        Route::get('/search', [TranslationController::class, 'search']);
-        Route::get('/export', [TranslationExportController::class, 'export']);
     });
 
     Route::group(['prefix' => 'tags'], function () {

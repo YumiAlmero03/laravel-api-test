@@ -24,6 +24,13 @@ class TagController extends Controller
      *             required=false,
      *             @OA\Schema(type="string")
      *         ),
+     *      @OA\Parameter(
+     *        name="count",
+     *        in="query",
+     *        description="Number of items per page for pagination",
+     *        required=false,
+     *        @OA\Schema(type="integer", default=50)
+     *      ),
      *         @OA\Response(
      *             response=200,
      *             description="List of tags",
@@ -177,7 +184,7 @@ class TagController extends Controller
      *             required=true,
      *             @OA\Schema(type="integer")
      *         ),
-     *         @OA\Response(response=204, description="Tag deleted successfully"),
+     *         @OA\Response(response=200, description="Tag deleted successfully"),
      *         @OA\Response(response=404, description="Tag not found")
      *     )
      * )
@@ -187,7 +194,7 @@ class TagController extends Controller
         try {
             $tag = Tag::findOrFail($id);
             $tag->delete();
-            return response()->json('Tag deleted successfully', 204);
+            return response()->json(['message' => 'Tag deleted successfully'], 204);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Tag not found'], 404);
         }

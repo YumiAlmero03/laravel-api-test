@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreTranslationRequest;
 use App\Http\Requests\UpdateTranslationRequest;
 use App\Models\Translation;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class TranslationController extends Controller
 {
@@ -36,6 +37,13 @@ class TranslationController extends Controller
      *         required=false,
      *         @OA\Schema(type="string")
      *     ),
+     *    @OA\Parameter(
+     *        name="count",
+     *        in="query",
+     *        description="Number of items per page for pagination",
+     *        required=false,
+     *        @OA\Schema(type="integer", default=50)
+     *    ),
      *     @OA\Response(
      *         response=200,
      *         description="Paginated list of translations",
@@ -52,7 +60,7 @@ class TranslationController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Translation::with(['locale', 'tags']);
+        $query = Translation::with(['locale', 'tags'])->select(['id', 'key', 'value', 'locale_id']);
 
         if ($request->filled('key')) {
             $query->where('key', 'like', $request->key . '%');
@@ -70,8 +78,10 @@ class TranslationController extends Controller
             );
         }
 
+        $count = $request->get('count', 50);
+        
         return response()->json(
-            $query->orderBy('id')->paginate(50)
+            $query->orderBy('id')->paginate($count)
         );
     }
 
@@ -85,12 +95,13 @@ class TranslationController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"locale_id","key","value"},
-     *             @OA\Property(property="locale_id", type="integer"),
-     *             @OA\Property(property="key", type="string"),
-     *             @OA\Property(property="value", type="string"),
+     *             @OA\Property(property="locale_id", type="integer", example=1),
+     *             @OA\Property(property="key", type="string", example="welcome.title"),
+     *             @OA\Property(property="value", type="string", example="Welcome"),
      *             @OA\Property(
      *                 property="tags",
      *                 type="array",
+     *                 example="[1,2]",
      *                 @OA\Items(type="integer")
      *             )
      *         )
@@ -110,7 +121,6 @@ class TranslationController extends Controller
     public function store(StoreTranslationRequest $request)
     {
         $data = $request->validated();
-
         $translation = Translation::create($data);
 
         if (!empty($data['tags'])) {
@@ -145,7 +155,11 @@ class TranslationController extends Controller
      */
     public function show(Translation $translation)
     {
-        return response()->json($translation->load('tags'));
+        try {
+            return response()->json($translation->load('tags'));
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Translation not found'], 404);
+        }
     }
 
     /**
@@ -154,11 +168,19 @@ class TranslationController extends Controller
      *     summary="Update a translation",
      *     tags={"Translations"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
+     *     @OA\RequestBody(
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\JsonContent(
+     *             required={"locale_id","key","value"},
+     *             @OA\Property(property="locale_id", type="integer"),
+     *             @OA\Property(property="key", type="string"),
+     *             @OA\Property(property="value", type="string"),
+     *             @OA\Property(
+     *                 property="tags",
+     *                 type="array",
+     *                 @OA\Items(type="integer")
+     *             )
+     *         )
      *     ),
      *     @OA\RequestBody(
      *         required=true,
@@ -178,17 +200,19 @@ class TranslationController extends Controller
      *     )
      * )
      */
-    public function update(UpdateTranslationRequest $request, Translation $translation)
+    public function update(StoreTranslationRequest $request, Translation $translation)
     {
-        $data = $request->validated();
-
-        $translation->update($data);
-
-        if (array_key_exists('tags', $data)) {
-            $translation->tags()->sync($data['tags']);
+        try{
+            $data = $request->validated();
+            $translation->update($data);
+            if (array_key_exists('tags', $data)) {
+                $translation->tags()->sync($data['tags']);
+            }
+            return response()->json(['message' => 'Translation updated successfully', 'translation' => $translation->load('tags')], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Translation not found'], 404);
         }
-
-        return response()->json($translation->load('tags'));
+        
     }
 
     /**
@@ -211,7 +235,43 @@ class TranslationController extends Controller
      */
     public function destroy(Translation $translation)
     {
-        $translation->delete();
-        return response()->json(null, 204);
+        try {
+            $translation->delete();
+            return response()->json("Translation deleted", 204);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Translation not found'], 404);
+        }
+        
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/translations/export",
+     *     summary="Export translations for frontend",
+     *     tags={"Translations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Translations grouped by locale",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             
+     *         )
+     *     )
+     * )
+     */
+    public function export($page)
+    {
+        $translations = Translation::query()
+            ->select(['key', 'value', 'locale_id'])
+            ->with('locale:id,code')
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn ($t) => $t->locale->code)
+            ->map(fn ($items) =>
+                $items->pluck('value', 'key')
+            );
+
+        return response()->json($translations);
     }
 }

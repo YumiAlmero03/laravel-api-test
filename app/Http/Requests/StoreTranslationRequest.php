@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreTranslationRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class StoreTranslationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,8 +22,34 @@ class StoreTranslationRequest extends FormRequest
      */
     public function rules(): array
     {
+        $translationId = $this->route('translation')?->id;
+
         return [
-            //
+            'locale_id' => ['required', 'exists:locales,id'],
+
+            'key' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('translations', 'key')
+                    ->where(fn ($q) =>
+                        $q->where('locale_id', $this->input('locale_id'))
+                    )
+                    ->ignore($translationId),
+            ],
+
+            'value' => [
+                'required',
+                'string',
+                Rule::unique('translations', 'value')
+                    ->where(fn ($q) =>
+                        $q->where('locale_id', $this->input('locale_id'))
+                    )
+                    ->ignore($translationId),
+            ],
+
+            'tags' => ['array'],
+            'tags.*' => ['exists:tags,id'],
         ];
     }
 }

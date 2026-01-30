@@ -18,7 +18,7 @@ class Translation extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class, 'tag_translation');
+        return $this->belongsToMany(Tag::class, 'tag_translations');
     }
 
 }

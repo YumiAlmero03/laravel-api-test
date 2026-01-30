@@ -35,7 +35,8 @@ class LocaleController extends Controller
      */
     public function index()
     {
-        return response()->json(Locale::orderBy('code')->get());
+        $query = Locale::orderBy('code')->select(['id', 'code', 'name'])->get();
+        return response()->json($query);
     }
 
     /**
@@ -50,8 +51,8 @@ class LocaleController extends Controller
      *             description="Locale data",
      *             @OA\JsonContent(
      *                 required={"code", "name"},
-     *                 @OA\Property(property="code", type="string", example="fr"),
-     *                 @OA\Property(property="name", type="string", example="French")
+     *                 @OA\Property(property="code", type="string", example="jp"),
+     *                 @OA\Property(property="name", type="string", example="Japanese")
      *             )
      *         ),
      *         @OA\Response(
@@ -69,12 +70,10 @@ class LocaleController extends Controller
      */
     public function store(StoreLocaleRequest $request)
     {
-        $data = $request->validate([
-            'code' => 'required|string|max:10|unique:locales,code',
-            'name' => 'required|string|max:50',
-        ]);
+        $data = $request->validated();
+        $locale = Locale::create($data);
 
-        return response()->json(Locale::create($data), 201);
+        return response()->json($locale, 201);
     }
 
     /**
@@ -154,7 +153,7 @@ class LocaleController extends Controller
     {
         try {
             $locale->update($request->validated());
-            return response()->json($locale);
+            return response()->json(['message' => 'Locale updated successfully', 'locale' => $locale], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Locale not found'], 404);
         }
@@ -174,16 +173,17 @@ class LocaleController extends Controller
      *             required=true,
      *             @OA\Schema(type="integer")
      *         ),
-     *         @OA\Response(response=204, description="Locale deleted successfully"),
+     *         @OA\Response(response=200, description="Locale deleted successfully"),
      *         @OA\Response(response=404, description="Locale not found")
      *     )
      * )
      */
-    public function destroy(Locale $locale)
+    public function destroy($locale)
     {
         try {
+            $locale = Locale::findOrFail($locale);
             $locale->delete();
-            return response()->json(null, 204);
+            return response()->json(['message' => 'Locale deleted successfully'], 204);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Locale not found'], 404);
         }

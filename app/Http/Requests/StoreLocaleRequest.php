@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreLocaleRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class StoreLocaleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,8 +22,16 @@ class StoreLocaleRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Check if route has a locale (update), otherwise null (create)
+        $localeId = $this->route('locale')?->id;
+
         return [
-            'code' => 'required|string|max:10|unique:locales,code',
+            'code' => [
+                'required',
+                'string',
+                'max:10',
+                Rule::unique('locales', 'code')->ignore($localeId),
+            ],
             'name' => 'required|string|max:50',
         ];
     }

@@ -27,5 +27,53 @@ class TranslationTagSeeder extends Seeder
         }
 
         DB::table('tag_translations')->insertOrIgnore($rows);
+
+        //for UI purpose
+        $translation = [
+            [
+                "key" => "app.title",
+                "en" => "My Application",
+                "tg" => "Aking Aplikasyon",
+                "de" => "Meine Anwendung",
+                "es" => "Mi Aplicación"
+            ],
+            [
+                "key" => "app.description",
+                "en" => "This is a sample application.",
+                "tg" => "Ito ay isang halimbawa ng aplikasyon.",
+                "de" => "Dies ist eine Beispielanwendung.",
+                "es" => "Esta es una aplicación de ejemplo."
+            ],
+            [
+                "key" => "button.submit",
+                "en" => "Submit",
+                "tg" => "Isumite",
+                "de" => "Einreichen",
+                "es" => "Enviar"
+            ],
+            [
+                "key" => "button.cancel",
+                "en" => "Cancel",
+                "tg" => "Kanselahin",
+                "de" => "Abbrechen",
+                "es" => "Cancelar"
+            ],
+            [
+                "key" => "message.welcome",
+                "en" => "Welcome to our application!",
+                "tg" => "Maligayang pagdating sa aming aplikasyon!",
+                "de" => "Willkommen in unserer Anwendung!",
+                "es" => "¡Bienvenido a nuestra aplicación!"
+            ],
+            [
+                "key" => "button.language",
+                "en" => "Language",
+                "tg" => "Wika",
+                "de" => "Sprache",
+                "es" => "Idioma"
+            ]
+        ];
+
+        
     }
 }
