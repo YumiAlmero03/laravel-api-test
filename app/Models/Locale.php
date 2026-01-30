@@ -9,4 +9,17 @@ class Locale extends Model
 {
     /** @use HasFactory<\Database\Factories\LocaleFactory> */
     use HasFactory;
+
+    protected $fillable = ['code', 'name'];
+
+    public function translations()
+    {
+        return $this->hasMany(Translation::class);
+    }
+    public function getRouteKeyName()
+    {
+        return 'id';
+    }
+
+
 }

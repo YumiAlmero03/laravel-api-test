@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Http\Requests\StoreTranslationRequest;
 use App\Http\Requests\UpdateTranslationRequest;
 use App\Models\Translation;
@@ -9,58 +10,208 @@ use App\Models\Translation;
 class TranslationController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/translations",
+     *     summary="List translations with filters",
+     *     tags={"Translations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="key",
+     *         in="query",
+     *         description="Filter by translation key prefix",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="locale",
+     *         in="query",
+     *         description="Filter by locale code (e.g. en, fr)",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="tag",
+     *         in="query",
+     *         description="Filter by tag name",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Paginated list of translations",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(ref="#/components/schemas/Translation")
+     *             ),
+     *             @OA\Property(property="links", type="object"),
+     *             @OA\Property(property="meta", type="object")
+     *         )
+     *     )
+     * )
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $query = Translation::with(['locale', 'tags']);
+
+        if ($request->filled('key')) {
+            $query->where('key', 'like', $request->key . '%');
+        }
+
+        if ($request->filled('locale')) {
+            $query->whereHas('locale', fn ($q) =>
+                $q->where('code', $request->locale)
+            );
+        }
+
+        if ($request->filled('tag')) {
+            $query->whereHas('tags', fn ($q) =>
+                $q->where('name', $request->tag)
+            );
+        }
+
+        return response()->json(
+            $query->orderBy('id')->paginate(50)
+        );
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *     path="/translations",
+     *     summary="Create a translation",
+     *     tags={"Translations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"locale_id","key","value"},
+     *             @OA\Property(property="locale_id", type="integer"),
+     *             @OA\Property(property="key", type="string"),
+     *             @OA\Property(property="value", type="string"),
+     *             @OA\Property(
+     *                 property="tags",
+     *                 type="array",
+     *                 @OA\Items(type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Translation created",
+     *         @OA\JsonContent(ref="#/components/schemas/Translation")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *     )
+     * )
      */
     public function store(StoreTranslationRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        $translation = Translation::create($data);
+
+        if (!empty($data['tags'])) {
+            $translation->tags()->sync($data['tags']);
+        }
+
+        return response()->json($translation->load('tags'), 201);
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *     path="/translations/{id}",
+     *     summary="Get a translation",
+     *     tags={"Translations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Translation details",
+     *         @OA\JsonContent(ref="#/components/schemas/Translation")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Translation not found"
+     *     )
+     * )
      */
     public function show(Translation $translation)
     {
-        //
+        return response()->json($translation->load('tags'));
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Translation $translation)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * @OA\Put(
+     *     path="/translations/{id}",
+     *     summary="Update a translation",
+     *     tags={"Translations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="value", type="string"),
+     *             @OA\Property(
+     *                 property="tags",
+     *                 type="array",
+     *                 @OA\Items(type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Translation updated",
+     *         @OA\JsonContent(ref="#/components/schemas/Translation")
+     *     )
+     * )
      */
     public function update(UpdateTranslationRequest $request, Translation $translation)
     {
-        //
+        $data = $request->validated();
+
+        $translation->update($data);
+
+        if (array_key_exists('tags', $data)) {
+            $translation->tags()->sync($data['tags']);
+        }
+
+        return response()->json($translation->load('tags'));
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *     path="/translations/{id}",
+     *     summary="Delete a translation",
+     *     tags={"Translations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Translation deleted"
+     *     )
+     * )
      */
     public function destroy(Translation $translation)
     {
-        //
+        $translation->delete();
+        return response()->json(null, 204);
     }
 }

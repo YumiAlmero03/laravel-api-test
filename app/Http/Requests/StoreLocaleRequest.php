@@ -22,7 +22,8 @@ class StoreLocaleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'code' => 'required|string|max:10|unique:locales,code',
+            'name' => 'required|string|max:50',
         ];
     }
 }

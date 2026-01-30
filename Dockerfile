@@ -29,17 +29,18 @@ COPY . .
 # Install Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+
 # Set file permissions for the Laravel project
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 777 /var/www/html/storage \
-    && chmod -R 777 /var/www/html/bootstrap/cache
+# RUN chown -R www-data:www-data /var/www/html \
+#     && chmod -R 777 /var/www/html/storage \
+#     && chmod -R 777 /var/www/html/bootstrap/cache
 
-RUN chown -R www-data:www-data /var/www/html/storage
+# RUN chown -R www-data:www-data /var/www/html/storage
 
-RUN php artisan config:clear
-RUN php artisan cache:clear
-RUN php artisan route:clear
-RUN php artisan view:clear
+# RUN php artisan config:clear
+# RUN php artisan cache:clear
+# RUN php artisan route:clear
+# RUN php artisan view:clear
 
 # Expose port 9000 for PHP-FPM
 EXPOSE 9000

@@ -3,21 +3,19 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-
+use App\Models\Locale;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Locale>
  */
 class LocaleFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Locale::class;
+
     public function definition(): array
     {
         return [
-            //
+            'code' => $this->faker->unique()->languageCode(),
+            'name' => $this->faker->languageCode(),
         ];
     }
 }

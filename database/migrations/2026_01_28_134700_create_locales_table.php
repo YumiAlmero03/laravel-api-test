@@ -11,16 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('translations', function (Blueprint $table) {
+        Schema::create('locales', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('locale_id');
-            $table->string('key');
-            $table->text('value');
-
+            $table->string('code', 10)->unique(); 
+            $table->string('name');
             $table->timestamps();
-
-            $table->unique(['locale_id', 'key']);
-            $table->index(['key']);
         });
     }
 
@@ -29,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('translations');
+        Schema::dropIfExists('locales');
     }
 };

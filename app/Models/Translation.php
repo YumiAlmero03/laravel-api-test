@@ -9,6 +9,8 @@ class Translation extends Model
 {
     /** @use HasFactory<\Database\Factories\TranslationFactory> */
     use HasFactory;
+    protected $fillable = ['locale_id', 'key', 'value'];
+
     public function locale()
     {
         return $this->belongsTo(Locale::class);
@@ -16,7 +18,7 @@ class Translation extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->belongsToMany(Tag::class, 'tag_translation');
     }
 
 }

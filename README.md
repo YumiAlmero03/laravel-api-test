@@ -221,7 +221,10 @@ php artisan serve
 ### With Docker (Optional)
 
 ```
+
 docker-compose up -d --build
+docker-compose exec app_laravel_api_test php artisan migrate:fresh --seed
+
 ```
 
 ---
@@ -233,6 +236,10 @@ docker-compose up -d --build
 * Input validation on all requests
 
 ---
+
+## View Apis Manualy
+
+check this postman link: www.postman.com/thfg88/workspace/share-api-test
 
 ## Final Notes
 
